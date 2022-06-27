@@ -3,7 +3,7 @@ package core
 import event "github.com/lapuda/event_center/core"
 
 type CollectEvent struct {
-	CollectData []byte
+	CollectData interface{}
 }
 
 func (c CollectEvent) Name() event.EventName {
@@ -13,5 +13,3 @@ func (c CollectEvent) Name() event.EventName {
 func (c CollectEvent) Data() interface{} {
 	return c.CollectData
 }
-
-type WriteFunc func(data []byte)
