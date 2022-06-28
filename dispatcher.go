@@ -7,29 +7,21 @@ import (
 )
 import event "github.com/lapuda/event_center/core"
 
-const SubscribeDispatchHandler = "Subscribe_Dispatch_Handler"
-
 type Dispatcher struct {
-	WriteFunc   core.WriteFunc
 	Ctx         context.Context
 	eventCenter *event.EventCenter
 }
 
 func (d *Dispatcher) initEnv() {
-	collectEvent := core.CollectEvent{}
 	d.eventCenter = event.CreateEventCenter(d.Ctx)
-
-	//register
-	d.eventCenter.Register(collectEvent.Name())
-	// disptch process
-	d.eventCenter.Subscribe(collectEvent.Name(), SubscribeDispatchHandler, d.dispatch)
+	d.eventCenter.Register(core.CollectEvent{}.Name())
 }
 
-func (d *Dispatcher) dispatch(param interface{}) {
-	d.WriteFunc(param.([]byte))
+func (d *Dispatcher) AddTarget(targetName string, writeFunc event.EventHandler) {
+	d.eventCenter.Subscribe(core.CollectEvent{}.Name(), event.HandlerName(targetName), writeFunc)
 }
 
-func (d *Dispatcher) Collect(data []byte) {
+func (d *Dispatcher) Collect(data interface{}) {
 	error := d.eventCenter.SendEvent(core.CollectEvent{CollectData: data})
 	if error != nil {
 		log.Panicf("during collect data occer error: %v \n", error)
@@ -40,8 +32,8 @@ func (d *Dispatcher) Run() {
 	d.initEnv()
 }
 
-func NewDispatcherAndRun(writeFunc core.WriteFunc, ctx context.Context) *Dispatcher {
-	dispatcher := Dispatcher{WriteFunc: writeFunc, Ctx: ctx}
+func NewDispatcherAndRun(ctx context.Context) *Dispatcher {
+	dispatcher := Dispatcher{Ctx: ctx}
 	dispatcher.Run()
 	return &dispatcher
 }
